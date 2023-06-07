@@ -1,0 +1,30 @@
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: <yourPEMfilename>.pem
+    ansible_ssh_common_args: -o StrictHostKeyChecking=no
+    kafka_broker_custom_listeners:
+      client_listener:
+        name: CLIENT
+        port: 9091
+
+zookeeper:
+  hosts:
+    <zookeeper-hostname>:
+
+kafka_broker:
+  hosts:
+    <broker-1-hostname>:
+      kafka_broker_custom_listeners:
+        client_listener:
+          hostname: <broker-1-hostname>
+    <broker-2-hostname>:
+      kafka_broker_custom_listeners:
+        client_listener:
+          hostname: <broker-2-hostname> 
+    <broker-3-hostname>:
+      kafka_broker_custom_listeners:
+        client_listener:
+          hostname: <broker-3-hostname> 
