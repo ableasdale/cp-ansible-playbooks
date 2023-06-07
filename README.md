@@ -14,8 +14,10 @@ ansible-galaxy collection install community.general
 
 ## What instances should I use for my target machines?
 
-![[img/compatible-instance.png]]
+These playbooks have been tested with the latest version of cp-ansible (7.4.0) and Ubuntu 20.04 on AWS:
 
-### Useful reading
+![Ubuntu 20.04](img/compatible-instance.png)
+
+## Useful reading
 
 - https://docs.confluent.io/platform/current/installation/system-requirements.html#operating-systems
