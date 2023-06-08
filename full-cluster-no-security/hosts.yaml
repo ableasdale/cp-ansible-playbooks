@@ -1,0 +1,61 @@
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: <yourPEMfilename>.pem
+    ansible_ssh_common_args: -o StrictHostKeyChecking=no
+    validate_hosts: false
+    confluent_common_repository_debian_release_version: focal
+    #Enable JMX Exporter
+    jmxexporter_enabled: true    
+    env: aws
+
+zookeeper:
+  hosts:
+    <zk-1-internal-hostname>:
+      ansible_host: <zk-1-hostname>
+    <zk-2-internal-hostname>:
+      ansible_host: <zk-2-hostname>
+    <zk-3-internal-hostname>:
+      ansible_host: <zk-3-hostname>
+
+kafka_broker:
+  hosts:
+    <broker-1-internal-hostname>:
+      ansible_host: <broker-1-hostname>
+      #kafka_broker_custom_properties:
+        #broker.rack: eu-west-3a
+    <broker-2-internal-hostname>:
+      ansible_host: <broker-2-hostname>
+      #kafka_broker_custom_properties:
+        #broker.rack: eu-west-3b
+    <broker-3-internal-hostname>:
+      ansible_host: <broker-3-hostname>
+      #kafka_broker_custom_properties:
+        #broker.rack: eu-west-3c
+
+schema_registry:
+  hosts:
+    <sr-1-internal-hostname>:
+      ansible_host: <sr-1-hostname>
+
+kafka_rest:
+  hosts:
+    <restproxy-1-internal-hostname>:
+      ansible_host: <restproxy-1-hostname>
+
+ksql:
+  hosts:
+    <ksql-1-internal-hostname>:
+      ansible_host: <ksql-1-hostname>
+
+kafka_connect:
+  hosts:
+    <connect-1-internal-hostname>:
+      ansible_host: <connect-1-hostname>
+
+control_center:
+  hosts:
+    <c3-1-internal-hostname>:
+      ansible_host: <c3-1-hostname>
