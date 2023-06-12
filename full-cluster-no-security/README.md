@@ -60,11 +60,19 @@ Install the playbook:
 ansible-playbook -i hosts.yaml confluent.platform.all
 ```
 
+## Basic Tests
+
+List topics
+
+```bash
+ssh -i <yourPEMFile>.pem ubuntu@ec2-xxx-yyy
+kafka-topics --bootstrap-server localhost:9091 --list
+```
 
 ## Debugging
 
 ```bash
--vvvv
+ansible-playbook -i hosts.yaml confluent.platform.all -vvvv
 ```
 
 Is `confluent-server` installed?  What is it's status?
