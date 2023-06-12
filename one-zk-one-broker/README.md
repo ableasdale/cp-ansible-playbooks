@@ -1,3 +1,37 @@
+# One Zookeeper node; one broker
+
+To get the playbook running, you'll need two EC2 instances:
+
+- Broker (`t2.large`)
+- Zookeeper (`t2.medium`)
+
+### Modify the Playbook
+
+Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`): 
+
+```yaml
+    ansible_ssh_private_key_file: <yourPEMfilename>.pem
+```
+
+Configure the Zookeeper host (use the internal host DNS name for the first line and the Public DNS host name for the second line):
+
+```yaml
+zookeeper:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+Configure the Broker (use the internal host DNS name for the first line and the Public DNS host name for the second line):
+
+```yaml
+kafka_broker:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+### Run Ansible
 
 Run the playbook:
 
