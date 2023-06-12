@@ -1,9 +1,10 @@
-# cp-ansible-playbooks
-My CP-Ansible Playbooks
+# CP-Ansible Playbooks
+
+My [CP-Ansible](https://docs.confluent.io/ansible/current/overview.html) Playbooks
 
 ## Installation
 
-Follow these steps:
+Follow these steps to install CP-Ansible (Ubuntu):
 
 ```bash
 pip3 install ansible
