@@ -60,7 +60,7 @@ Install the playbook:
 ansible-playbook -i hosts.yaml confluent.platform.all
 ```
 
-## Basic Tests
+## Basic Tests
 
 List topics
 
@@ -69,7 +69,7 @@ ssh -i <yourPEMFile>.pem ubuntu@ec2-xxx-yyy
 kafka-topics --bootstrap-server localhost:9091 --list
 ```
 
-## Debugging
+## Debugging
 
 ```bash
 ansible-playbook -i hosts.yaml confluent.platform.all -vvvv
@@ -89,7 +89,7 @@ sudo systemctl restart confluent-server
 sudo systemctl status confluent-server
 ```
 
-## Where are the logs?
+## Where are the logs?
 
 For the broker:
 

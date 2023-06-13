@@ -9,6 +9,7 @@ There are playbooks (with instructions) for the following configurations:
 - [One Zookeeper; one Broker](one-zk-one-broker/README.md)
 - [One Zookeeper; one Broker; Confluent Control Center](one-zk-one-broker-c3/README.md)
 - [All CP Components; no security configured](full-cluster-no-security/README.md)
+- [One Zookeeper; one Broker; Confluent Control Center; TLS/SSL](one-zk-one-broker-c3-tls/README.md)
 
 ## Installation
 
