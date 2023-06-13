@@ -1,14 +1,16 @@
 # One Zookeeper node; one broker; Confluent Control Center (C3)
 
+## Prerequisites
+
 To get the playbook running, you'll need three EC2 instances:
 
 - Broker (`t2.large`)
 - Zookeeper (`t2.medium`)
 - C3 (`t2.large`)
 
-### Modify the Playbook
+## Modify the Playbook
 
-Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`): 
+Specify the PEM file that you used (to connect to the instance) when the instance was created in the playbook (`hosts.yaml`):
 
 ```yaml
     ansible_ssh_private_key_file: <yourPEMfilename>.pem
