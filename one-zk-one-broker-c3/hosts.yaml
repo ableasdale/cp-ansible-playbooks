@@ -14,9 +14,6 @@ all:
     # Allow 4-Letter Words to be used with Zookeeper 
     zookeeper_custom_properties:
       4lw.commands.whitelist: "*"
-    #zookeeper:
-    #  properties:
-    #    4lw.commands.whitelist: stat, ruok, conf, isro, dump, mntr, srvr
 
 zookeeper_custom_properties:
   4lw.commands.whitelist: "*"

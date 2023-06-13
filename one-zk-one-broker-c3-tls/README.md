@@ -1,4 +1,42 @@
-# One Zookeeper node; one broker; Confluent Control Center (C3)
+# One Zookeeper node; one broker; Confluent Control Center (C3) and TLS (SSL)
+
+## Introduction
+
+Note that TLS/SSL can be configured by adding a single line to your playbook:
+
+```yaml
+  vars:
+    ssl_enabled: true
+```
+
+Note that this is a catch-all and will enable TLS for all components. [https://docs.confluent.io/ansible/current/ansible-encrypt.html#configure-tls-for-individual-components](See the documentation for configuring TLS for selected components).
+
+With SSL enabled as per the example above, note that the Ansible host system will generate a CA certificate for you:
+
+```bash
+changed: [ip-10-0-3-61.eu-west-1.compute.internal] => (item=snakeoil-ca-1.key)
+changed: [ip-10-0-3-61.eu-west-1.compute.internal] => (item=snakeoil-ca-1.crt)
+```
+
+After this is done, you'll be able to access the files in the following directory:
+
+```bash
+cd /home/ubuntu/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/
+ls -l
+```
+
+You should see:
+
+```bash
+-rw-rw-r-- 1 ubuntu ubuntu 1338 Jun 13 18:46 snakeoil-ca-1.crt
+-rw-rw-r-- 1 ubuntu ubuntu 1854 Jun 13 18:46 snakeoil-ca-1.key
+```
+
+## Security Model Changes
+
+Note that this configuration introduces a new TCP port which will need to be added to your Security Group:
+
+![Zookeeper TLS Listener](/img/tls-zk-listener.png)
 
 ## Prerequisites
 

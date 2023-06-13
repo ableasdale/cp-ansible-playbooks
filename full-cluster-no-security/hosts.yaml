@@ -10,7 +10,10 @@ all:
     #Enable JMX Exporter
     jmxexporter_enabled: true    
     env: aws
-
+    # Allow 4-Letter Words to be used with Zookeeper 
+    zookeeper_custom_properties:
+      4lw.commands.whitelist: "*"
+      
 zookeeper:
   hosts:
     <zk-1-internal-hostname>:

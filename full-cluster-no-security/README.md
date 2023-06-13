@@ -82,9 +82,31 @@ apt list --installed confluent-server
 sudo systemctl status confluent-server
 ```
 
+## Restarting the broker
+
+```bash
+sudo systemctl restart confluent-server
+sudo systemctl status confluent-server
+```
+
 ## Where are the logs?
 
+For the broker:
+
+```bash
+cd /var/log/kafka/
+sudo su
+tail -n200 server.log
+```
+
 ## Where are the configuration files?
+
+For the broker:
+
+```bash
+cd /etc/kafka
+less server.properties
+```
 
 ## Where is all the data stored for the brokers?
 

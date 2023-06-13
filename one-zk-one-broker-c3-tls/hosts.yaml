@@ -1,5 +1,6 @@
 all:
   vars:
+    ssl_enabled: true
     ansible_connection: ssh
     ansible_user: ubuntu
     ansible_become: true
@@ -8,13 +9,16 @@ all:
     validate_hosts: false
     # Uses Ubuntu 20.04 LTS (focal)
     confluent_common_repository_debian_release_version: focal
-    #Enable JMX Exporter
+    # Enable JMX Exporter
     jmxexporter_enabled: true    
     env: aws
     # Allow 4-Letter Words to be used with Zookeeper 
     zookeeper_custom_properties:
       4lw.commands.whitelist: "*"
-      
+
+zookeeper_custom_properties:
+  4lw.commands.whitelist: "*"
+
 zookeeper:
   hosts:
     ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
@@ -27,4 +31,8 @@ kafka_broker:
       kafka_broker_custom_properties:
         # Specifying broker.rack for rack awareness
         broker.rack: eu-west-1a
- 
+
+control_center:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
