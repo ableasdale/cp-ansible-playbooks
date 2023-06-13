@@ -146,6 +146,20 @@ Consume from the topic:
 kafka-console-consumer --bootstrap-server localhost:9091 --topic test-topic --from-beginning
 ```
 
-Now let's try to connect to C3:
+Now let's try to connect to C3 using a browser (with https):
 
-<http://ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com:9021>
+<https://ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com:9021>
+
+Note that this does work - but the browser will complain that the HTTPS connection is not secure (because TLS was not configured with a proper root certificate).  
+
+curl --cacert /var/ssl/private/ca.crt -X GET https://ec2-3-253-123-116.eu-west-1.compute.amazonaws.com:9021/clusters
+
+curl -X GET https://ip-10-0-14-203.eu-west-1.compute.internal:9021/clusters
+
+### Connect to Schema Registry using TLS
+
+We can use cURL to establish a TLS connection to Schema Registry by providing the CA certificate as an argument to the command `--cacert`:
+
+```bash
+curl --cacert /var/ssl/private/ca.crt -X GET -H 'Content-Type: application/json' "https://ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:8081/subjects"
+```

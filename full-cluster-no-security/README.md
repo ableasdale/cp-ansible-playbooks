@@ -105,6 +105,19 @@ sudo systemctl restart confluent-zookeeper
 sudo systemctl status confluent-zookeeper
 ```
 
+To restart Schema Registry
+
+```bash
+sudo systemctl restart confluent-schema-registry
+sudo systemctl status confluent-schema-registry
+```
+
+To search for a given service name:
+
+```bash
+sudo systemctl list-units | grep confluent
+```
+
 ## Where are the logs?
 
 For the broker:
