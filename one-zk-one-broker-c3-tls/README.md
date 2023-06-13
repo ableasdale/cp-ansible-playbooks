@@ -45,6 +45,7 @@ To get the playbook running, you'll need three EC2 instances:
 - C3 (`t2.large`)
 - Broker (`t2.large`)
 - Zookeeper (`t2.medium`)
+- Schema Registry (`t2.medium`)
 
 ## Modify the Playbook
 
@@ -67,6 +68,15 @@ Configure the Broker (use the internal host DNS name for the first line and the 
 
 ```yaml
 kafka_broker:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+Configure the Schema Registry host (use the internal host DNS name for the first line and the Public DNS host name for the second line):
+
+```yaml
+schema_registry:
   hosts:
     ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
       ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com

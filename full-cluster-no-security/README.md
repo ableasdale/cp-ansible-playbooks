@@ -131,6 +131,14 @@ cd /var/log/kafka
 tail -n200 zookeeper-server.log
 ```
 
+For Confluent Control Center (C3):
+
+```bash
+sudo su
+cd /var/log/confluent/control-center
+tail -n200 control-center.log
+```
+
 ## Where are the configuration files?
 
 For the broker:
@@ -145,6 +153,14 @@ For Zookeeper:
 ```bash
 cd /etc/kafka
 less zookeeper.properties
+```
+
+For Confluent Control Center:
+
+```bash
+sudo su
+cd /etc/confluent-control-center
+less control-center-production.properties
 ```
 
 ## Where is all the data stored for the brokers?
