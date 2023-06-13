@@ -82,11 +82,27 @@ apt list --installed confluent-server
 sudo systemctl status confluent-server
 ```
 
-## Restarting the broker
+## Restarting the components
+
+To restart the broker:
 
 ```bash
 sudo systemctl restart confluent-server
 sudo systemctl status confluent-server
+```
+
+To restart Confluent Control Center (C3):
+
+```bash
+sudo systemctl restart confluent-control-center
+sudo systemctl status confluent-control-center
+```
+
+To restart Zookeeper
+
+```bash
+sudo systemctl restart confluent-zookeeper
+sudo systemctl status confluent-zookeeper
 ```
 
 ## Where are the logs?
@@ -94,9 +110,25 @@ sudo systemctl status confluent-server
 For the broker:
 
 ```bash
-cd /var/log/kafka/
 sudo su
+cd /var/log/kafka/
 tail -n200 server.log
+```
+
+For Control Center (C3):
+
+```bash
+sudo su
+cd /var/log/confluent/control-center
+tail -f control-center.log
+```
+
+For Zookeeper:
+
+```bash
+sudo su
+cd /var/log/kafka
+tail -n200 zookeeper-server.log
 ```
 
 ## Where are the configuration files?
@@ -106,6 +138,13 @@ For the broker:
 ```bash
 cd /etc/kafka
 less server.properties
+```
+
+For Zookeeper:
+
+```bash
+cd /etc/kafka
+less zookeeper.properties
 ```
 
 ## Where is all the data stored for the brokers?
@@ -138,3 +177,59 @@ If you have 4-letter words enabled for Zookeeper, you can access those stats by 
 ```bash
 echo mntr | nc localhost 2181
 ```
+
+How you do this with a TLS connection?
+
+```bash
+echo mntr | openssl s_client -connect localhost:2182
+```
+
+(this returns data - but it's not very readable...)
+
+This works:
+
+```bash
+echo mntr | openssl s_client -connect localhost:2182 -ign_eof
+```
+
+### Try with `ncat`
+
+This also works:
+
+```bash
+sudo apt-get install ncat
+echo mntr | ncat --ssl localhost 2182
+```
+
+### What about `zookeeper-shell` over TLS?
+
+`zookeeper-shell` doesn't appear to work if Zookeeper is configured with TLS; if you run this, it will fail:
+
+```bash
+zookeeper-shell localhost:2182
+```
+
+To make this connection using TLS, you need to pass in an extra switch: `-zk-tls-config-file`.  You need to specify a properties file for this.
+
+Here's an example of a file called `zkshell.properties` to illustrate what that would look like (note that this uses the default truststore information that `cp-ansible` uses):
+
+```properties
+zookeeper.ssl.client.enable=true
+zookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty
+zookeeper.ssl.truststore.location=/var/ssl/private/zookeeper.truststore.jks
+zookeeper.ssl.truststore.password=confluenttruststorepass
+```
+
+With this file (`zkshell.properties`) in place, you can now run `zookeeper-shell` to connect using TLS by doing the following:
+
+```bash
+zookeeper-shell ip-10-0-10-36.eu-west-1.compute.internal:2182 -zk-tls-config-file /etc/kafka/zkshell.properties
+```
+
+Below is an example to get broker topic information for a given topic (`_confluent-command`) and to pipe it out to a text file (`zookeeper-shell.out`):
+
+```bash
+zookeeper-shell ip-10-0-10-36.eu-west-1.compute.internal:2182 -zk-tls-config-file /etc/kafka/zkshell.properties get /brokers/topics/_confluent-command 2>&- | grep "^{" >> zookeeper-shell.out
+```
+
+See: (Confluent Documentation: Connecting to TLS-enabled ZooKeeper using CLI tools)[https://docs.confluent.io/platform/current/security/zk-security.html#connecting-to-tls-enabled-zk-using-cli-tools]
