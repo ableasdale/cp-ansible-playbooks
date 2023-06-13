@@ -26,7 +26,7 @@ In your VPC:
 
 ## Security Group Rules
 
-![Open these in your CIDR range](/img/security-group-inbound.png)
+![Open these in your CIDR range](/img/security-group-settings.png)
 
 ## Configure Ansible on your Ubuntu "ansible" machine
 
@@ -80,4 +80,39 @@ Is `confluent-server` installed?  What is it's status?
 ```bash
 apt list --installed confluent-server
 sudo systemctl status confluent-server
+```
+
+## Where are the logs?
+
+## Where are the configuration files?
+
+## Where is all the data stored for the brokers?
+
+By default, you'll find it in `/var/lib/kafka/data`:
+
+```bash
+cd /var/lib/kafka/data
+```
+
+## Looking for specific files
+
+Install `mlocate` to find a specific file installed by cp-ansible:
+
+```bash
+sudo apt install mlocate
+sudo su
+locate server.properties
+```
+
+You should see:
+
+```bash
+/etc/kafka/server.properties
+/etc/kafka/kraft/server.properties
+```
+
+If you have 4-letter words enabled for Zookeeper, you can access those stats by running:
+
+```bash
+echo mntr | nc localhost 2181
 ```
