@@ -2,6 +2,12 @@
 
 My [CP-Ansible](https://docs.confluent.io/ansible/current/overview.html) Playbooks
 
+## What's currently available
+
+- [one-zk-one-broker/README.md](One Zookeeper; one Broker)
+- [one-zk-one-broker-c3/README.md](One Zookeeper; one Broker; Confluent Control Center)
+- [full-cluster-no-security/README.md](All CP Components; no security configured)
+
 ## Installation
 
 Follow these steps to install CP-Ansible (Ubuntu):
