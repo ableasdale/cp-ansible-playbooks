@@ -13,15 +13,31 @@ There are playbooks (with instructions) for the following configurations:
 
 ## Installation
 
+### Linux
+
 Follow these steps to install CP-Ansible (on Ubuntu):
 
 ```bash
+ssh -i filenameofyour.pem ubuntu@ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
 pip3 install ansible
 python3.11 -m pip install --upgrade pip
 ansible-galaxy collection install git+https://github.com/confluentinc/cp-ansible.git
 ansible-galaxy collection install ansible.posix
 ansible-galaxy collection install community.general
 ```
+
+For Redhat 9:
+
+```bash
+ssh -i  filenameofyour.pem ec2-user@ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+# sudo yum install python3 - not necessary, I think?
+sudo dnf install ansible-core
+ansible-galaxy collection install git+https://github.com/confluentinc/cp-ansible.git
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.general
+```
+
+### OS X
 
 If you're planning on running CP-Ansible on OS X, follow these steps (using homebrew):
 
