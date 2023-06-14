@@ -194,6 +194,8 @@ Note that the keytab file will be written to `/tmp` and the user is `kafka` and 
 sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
 ```
 
+Let's do the same for Zookeeper:
+
 ```bash
 sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
 ```
@@ -209,6 +211,37 @@ Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAM
 Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type camellia256-cts-cmac added to keytab WRFILE:/tmp/kafka.service.keytab.
 Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type camellia128-cts-cmac added to keytab WRFILE:/tmp/kafka.service.keytab.
 Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type arcfour-hmac added to keytab WRFILE:/tmp/kafka.service.keytab.
+```
+
+Let's create the `reader`, `writer` and `admin` keytabs:
+
+```bash
+sudo kadmin.local -q "xst -kt /tmp/reader.user.keytab reader@EXAMPLE.COM"
+sudo kadmin.local -q "xst -kt /tmp/writer.user.keytab writer@EXAMPLE.COM"
+sudo kadmin.local -q "xst -kt /tmp/admin.user.keytab admin@EXAMPLE.COM"
+```
+
+You will see content like this for each keytab:
+
+```bash
+Authenticating as principal kafka/admin@EXAMPLE.COM with password.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type aes256-cts-hmac-sha384-192 added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type aes128-cts-hmac-sha256-128 added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type aes256-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type aes128-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type camellia256-cts-cmac added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type camellia128-cts-cmac added to keytab WRFILE:/tmp/admin.user.keytab.
+Entry for principal admin@EXAMPLE.COM with kvno 2, encryption type arcfour-hmac added to keytab WRFILE:/tmp/admin.user.keytab.
+```
+
+After all of these have been created, you should now have 5 Keytab files in `tmp`:
+
+```bash
+-rw-------. 1 root root  463 Jun 14 19:07 admin.user.keytab
+-rw-------. 1 root root 1638 Jun 14 15:25 kafka.service.keytab
+-rw-------. 1 root root  470 Jun 14 19:07 reader.user.keytab
+-rw-------. 1 root root  470 Jun 14 19:07 writer.user.keytab
+-rw-------. 1 root root  841 Jun 14 15:49 zookeeper.service.keytab
 ```
 
 ## Testing the connection using the Keytab
@@ -247,6 +280,8 @@ Valid starting       Expires              Service principal
 06/14/2023 15:29:13  06/15/2023 15:29:13  krbtgt/EXAMPLE.COM@EXAMPLE.COM
 	renew until 06/14/2023 15:29:13
 ```
+
+Great! We're ready to start working on the Playbook!
 
 ## Getting Started
 
