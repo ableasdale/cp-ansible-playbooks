@@ -48,8 +48,8 @@ includedir /etc/krb5.conf.d/
 
 [realms]
  EXAMPLE.COM = {
-     kdc = ip-10-0-3-144.eu-west-1.compute.internal:88
-     admin_server = ip-10-0-3-144.eu-west-1.compute.internal:749
+     kdc = ec2-54-77-7-183.eu-west-1.compute.amazonaws.com:88
+     admin_server = ec2-54-77-7-183.eu-west-1.compute.amazonaws.com:749
      default_domain = example.com
  }
 
@@ -57,6 +57,10 @@ includedir /etc/krb5.conf.d/
     .example.com = EXAMPLE.COM
     example.com = EXAMPLE.COM
 ```
+
+TODO - details here
+
+Note that the realm `kdc` and `admin_server` are the public DNS hostnames for the instance containing the `krb5-server`.
 
 ### Set up the KDC
 
@@ -142,7 +146,117 @@ No policy specified for admin@EXAMPLE.COM; defaulting to no policy
 Principal "admin@EXAMPLE.COM" created.
 ```
 
-TODO ... 
+### Create Service User Principals
+
+Let's create principals for Zookeeper and the Kafka broker.  For a Service User, the format is slightly different; here the query follows this format: `add_principal -randkey kafka|zookeeper/<<AWS KAFKA/ZK HOST PUBLIC DNS NAME>>@EXAMPLE.COM`
+
+Let's start with Zookeeper (note that the address is the public DNS for that instance):
+
+```bash
+sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+```
+
+You should see:
+
+```bash
+Authenticating as principal root/admin@EXAMPLE.COM with password.
+No policy specified for zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM; defaulting to no policy
+Principal "zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM" created.
+```
+
+And for the broker:
+
+```bash
+sudo kadmin.local -q "add_principal -randkey kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+```
+
+```bash
+Authenticating as principal root/admin@EXAMPLE.COM with password.
+No policy specified for kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM; defaulting to no policy
+Principal "kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM" created.
+```
+
+### Create Keytabs
+
+For each of the users and service users, we now need to export out `keytab` files for those users.
+
+Note that the keytab file will be written to `/tmp` and the user is `kafka` and the host is the Public EC2 DNS hostname
+
+![Public DNS Name](/img/public-dns.pngimg/public-dns.png)
+
+```bash
+sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+```
+
+```bash
+sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+```
+
+You'll see some output like this:
+
+```bash
+Authenticating as principal root/admin@EXAMPLE.COM with password.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type aes256-cts-hmac-sha384-192 added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type aes128-cts-hmac-sha256-128 added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type aes256-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type aes128-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type camellia256-cts-cmac added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type camellia128-cts-cmac added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type arcfour-hmac added to keytab WRFILE:/tmp/kafka.service.keytab.
+```
+
+   31  sudo systemctl status krb5kdc
+   32  sudo kadmin.local -q "add_principal -randkey reader@EXAMPLE.COM"
+   33  sudo kadmin.local -q "add_principal -randkey writer@EXAMPLE.COM"
+   34  sudo kadmin.local -q "add_principal -randkey admin@EXAMPLE.COM"
+   35  sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@KAFKA.SECURE"
+   36  sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+   37  sudo kadmin.local -q "add_principal -randkey kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+   38  sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
+   39  kinit -kt /tmp/admin.user.keytab admin
+   40  kinit -kt /tmp/kafka.service.keytab admin
+   41  kinit -kt /tmp/kafka.service.keytab kafka
+   42  kinit -kt /tmp/kafka.service.keytab kafka/ec2-3-11-122-162.eu-west-2.compute.amazonaws.com
+   43  kinit -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
+   44  klist
+   45  history
+
+## Testing the connection using the Keytab
+
+Let's try to connect using the keytab and the Principal:
+
+```bash
+kinit -kt kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
+```
+
+Note that this fails - but what's key here is the "permission denied" exception:
+
+```bash
+kinit: Pre-authentication failed: Permission denied while getting initial credentials
+```
+
+Could it be that the user running has insufficient permissions on the host OS?  What happens if we test with `sudo`?:
+
+```bash
+sudo kinit -kt kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
+```
+
+Now we get returned to the prompt - no other information is provided.  Let's see whether the `kinit` call was successful by running `klist`:
+
+```bash
+sudo klist
+```
+
+We now see that we have a valid session:
+
+```bash
+Ticket cache: KCM:0
+Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM
+
+Valid starting       Expires              Service principal
+06/14/2023 15:29:13  06/15/2023 15:29:13  krbtgt/EXAMPLE.COM@EXAMPLE.COM
+	renew until 06/14/2023 15:29:13
+```
 
 ## Getting Started
 
