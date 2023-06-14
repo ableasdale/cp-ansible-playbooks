@@ -68,3 +68,4 @@ Redhat 9 has been certified with Confluent Platform 7.4.x+ on AWS:
 ## Useful reading
 
 - <https://docs.confluent.io/platform/current/installation/system-requirements.html#operating-systems>
+- <https://ubuntu.com/server/docs/service-kerberos>

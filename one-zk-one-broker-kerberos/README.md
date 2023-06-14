@@ -176,7 +176,7 @@ So, in summary, we now have 5 Principals: 3 are for our users (reader, writer an
 
 For each of the users and service users, we now need to export out `keytab` files for those users.
 
-Note that the keytab file will be written to `/tmp`. 
+Note that the keytab file will be written to `/tmp`.
 
 Reminder that for the Service Principals, the EC2 host given is the Public EC2 DNS hostname for the target machine (either the zookeeper instance or the broker instance), for example:
 
@@ -234,15 +234,14 @@ Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMP
 
 Valid starting       Expires              Service principal
 06/14/2023 15:29:13  06/15/2023 15:29:13  krbtgt/EXAMPLE.COM@EXAMPLE.COM
-	renew until 06/14/2023 15:29:13
+    renew until 06/14/2023 15:29:13
 ```
 
 Great! We're ready to start working on the Playbook!
 
-
 ### Modify the Playbook
 
-Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`): 
+Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`):
 
 ```yaml
     ansible_ssh_private_key_file: <yourPEMfilename>.pem
@@ -268,19 +267,19 @@ kafka_broker:
 
 ### Run Ansible
 
-Before running the Playbook - on RHEL 9 you need to run the following before starting to deploy the playbook (otherwise you will see a "Failed to validate GPG signature" message as soon as ansible attempts to install packages):
-
-```bash
-sudo update-crypto-policies --set DEFAULT:SHA1
-sudo echo "%_pkgverify_level signature" > /etc/rpm/macros.verify
-sudo reboot
-```
-
 Run the playbook:
 
 ```bash
 ansible-playbook -i hosts.yaml confluent.platform.all
 ```
+
+NOTE: issue with keytab being unreadable:
+
+```bash
+sudo chmod 777 *.keytab
+```
+
+Not sure whether this works though?
 
 When the playbook has finished running, you'll see something like this:
 
@@ -328,97 +327,15 @@ Consume from the topic:
 kafka-console-consumer --bootstrap-server localhost:9091 --topic test-topic --from-beginning
 ```
 
+NOTES - HOSTS diDn't come up; trying using internal DNS instead:
 
-### NOTES below
+sudo kadmin.local -q "add_principal -randkey kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
+sudo kadmin.local -q "add_principal -randkey zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 
+sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
+sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 
+Authenticating as principal kafka/admin@AD.CONFLUENT.IO with password.
+WARNING: no policy specified for zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO; defaulting to no policy
+Principal "zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO" created.
 
-
-
-
-
-
-
-
-
-
-
-
-Quick sanity test with Ubuntu - first create a Principal:
-
-```bash
-sudo kadmin.local -q "add_principal -randkey kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
-```
-
-You should see:
-
-```bash
-Authenticating as principal root/admin@AD.CONFLUENT.IO with password.
-WARNING: no policy specified for kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO; defaulting to no policy
-Principal "kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO" created.
-```
-
-Create a Keytab:
-
-```bash
-sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
-```
-
-You should see:
-
-```bash
-Authenticating as principal root/admin@AD.CONFLUENT.IO with password.
-Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO with kvno 2, encryption type aes256-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
-Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO with kvno 2, encryption type aes128-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
-```
-
-Now let's try to connect:
-
-```bash
-sudo kinit -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
-```
-
-Check with the KDC to ensure that the ticket has been issued:
-
-```bash
-sudo klist
-```
-
-You should see:
-
-```bash
-Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO
-
-Valid starting     Expires            Service principal
-06/14/23 19:41:12  06/15/23 19:41:12  krbtgt/AD.CONFLUENT.IO@AD.CONFLUENT.IO
-	renew until 06/14/23 19:41:12
-```
-
-
-
-
-
-
-
-
-
-
-
---- below
-
-
-
-
-
-Note that this fails - but what's key here is the "permission denied" exception:
-
-```bash
-kinit: Pre-authentication failed: Permission denied while getting initial credentials
-```
-
-Could it be that the user running has insufficient permissions on the host OS?  What happens if we test with `sudo`?:
-
-```bash
-sudo kinit -kt kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
-```
