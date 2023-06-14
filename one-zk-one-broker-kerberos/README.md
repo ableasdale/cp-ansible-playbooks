@@ -182,7 +182,7 @@ For each of the users and service users, we now need to export out `keytab` file
 
 Note that the keytab file will be written to `/tmp` and the user is `kafka` and the host is the Public EC2 DNS hostname
 
-![Public DNS Name](/img/public-dns.pngimg/public-dns.png)
+![Public DNS Name](../img/public-dns.pngimg/public-dns.png)
 
 ```bash
 sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
