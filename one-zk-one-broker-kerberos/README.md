@@ -58,9 +58,15 @@ includedir /etc/krb5.conf.d/
     example.com = EXAMPLE.COM
 ```
 
-TODO - details here
-
 Note that the realm `kdc` and `admin_server` are the public DNS hostnames for the instance containing the `krb5-server`.
+
+TODO - provide further details here
+
+### Configure the Security Group for TCP Ports `88` and `749`
+
+Note that we've configured two TCP ports in `krb5.conf`; these will need to be added to our Security Group to allow the instances to communicate:
+
+![Public DNS Name](../img/security-group-kdc.png)
 
 ### Set up the KDC
 
@@ -204,22 +210,6 @@ Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAM
 Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type camellia128-cts-cmac added to keytab WRFILE:/tmp/kafka.service.keytab.
 Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM with kvno 2, encryption type arcfour-hmac added to keytab WRFILE:/tmp/kafka.service.keytab.
 ```
-
-   31  sudo systemctl status krb5kdc
-   32  sudo kadmin.local -q "add_principal -randkey reader@EXAMPLE.COM"
-   33  sudo kadmin.local -q "add_principal -randkey writer@EXAMPLE.COM"
-   34  sudo kadmin.local -q "add_principal -randkey admin@EXAMPLE.COM"
-   35  sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@KAFKA.SECURE"
-   36  sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-52-16-120-59.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
-   37  sudo kadmin.local -q "add_principal -randkey kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
-   38  sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMPLE.COM"
-   39  kinit -kt /tmp/admin.user.keytab admin
-   40  kinit -kt /tmp/kafka.service.keytab admin
-   41  kinit -kt /tmp/kafka.service.keytab kafka
-   42  kinit -kt /tmp/kafka.service.keytab kafka/ec2-3-11-122-162.eu-west-2.compute.amazonaws.com
-   43  kinit -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
-   44  klist
-   45  history
 
 ## Testing the connection using the Keytab
 
