@@ -1,14 +1,149 @@
-# One Zookeeper node; one broker
+# One Zookeeper node; one broker; Kerberos
 
-## KDC
+## Setting up the KDC instance
 
-Install the Kerberos (`krb5`) dependencies on the machine that you plan to use for Kerberos Authorization:
+We're going to use the same machine that we used for the Ansible host to set up our KDC - it's already in the VPC and it's not being used much when cp-ansible is not running a deployment.
+
+Install the Kerberos (`krb5`) dependencies on the machine that you plan to use for Kerberos Authorization.  Note that we're using a RHEL 9 instance for this work (prior examples used Ubuntu):
 
 ```bash
 sudo dnf install -y krb5-server krb5-libs krb5-workstation
 ```
 
-Set up `krb5.conf`
+### Note for Ubuntu Users
+
+If you wanted to set this up using Ubuntu, you would run:
+
+```bash
+sudo apt install krb5-kdc krb5-admin-server
+```
+
+And to check the service was set up correctly, run:
+
+```bash
+systemctl status krb5-kdc.service
+```
+
+To edit:
+
+```bash
+sudo vim /etc/krb5.conf
+```
+
+For Ubuntu, your krb5 config file should look like this:
+
+```conf
+[libdefaults]
+        default_realm = AD.CONFLUENT.IO
+        kdc_timesync = 1
+        ccache_type = 4
+        proxiable = true
+
+        dns_lookup_realm = false
+        dns_lookup_kdc = false
+        ticket_lifetime = 24h
+        renew_lifetime = 7d
+        forwardable = true
+        udp_preference_limit = 1
+        default_tkt_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha384-192 aes128-cts-hmac-sha256-128
+        default_tgs_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha384-192 aes128-cts-hmac-sha256-128
+        permitted_enctypes   = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha384-192 aes128-cts-hmac-sha256-128
+
+        fcc-mit-ticketflags = true
+
+[realms]
+        AD.CONFLUENT.IO = {
+                kdc = ec2-3-252-252-150.eu-west-1.compute.amazonaws.com:88
+                admin_server = ec2-3-252-252-150.eu-west-1.compute.amazonaws.com:749
+                default_domain = ad.confluent.io
+        }
+
+[domain_realm]
+        .ad.confluent.io = AD.CONFLUENT.IO
+        ad.confluent.io = AD.CONFLUENT.IO
+```
+
+Note that the service won't start yet; the next thing you need to do is initialise the database and set a password:
+
+```bash
+sudo kdb5_util create -s
+```
+
+You should see:
+
+```bash
+Loading random data
+Initializing database '/var/lib/krb5kdc/principal' for realm 'AD.CONFLUENT.IO',
+master key name 'K/M@AD.CONFLUENT.IO'
+You will be prompted for the database Master Password.
+It is important that you NOT FORGET this password.
+Enter KDC database master key:
+Re-enter KDC database master key to verify:
+```
+
+After doing all of the above, the service should now start as expected:
+
+```bash
+ubuntu@ip-10-0-0-64:~$ sudo systemctl restart krb5-kdc.service
+ubuntu@ip-10-0-0-64:~$ systemctl status krb5-kdc.service
+```
+
+Quick sanity test with Ubuntu - first create a Principal:
+
+```bash
+sudo kadmin.local -q "add_principal -randkey kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+```
+
+You should see:
+
+```bash
+Authenticating as principal root/admin@AD.CONFLUENT.IO with password.
+WARNING: no policy specified for kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO; defaulting to no policy
+Principal "kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO" created.
+```
+
+Create a Keytab:
+
+```bash
+sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+```
+
+You should see:
+
+```bash
+Authenticating as principal root/admin@AD.CONFLUENT.IO with password.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO with kvno 2, encryption type aes256-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
+Entry for principal kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO with kvno 2, encryption type aes128-cts-hmac-sha1-96 added to keytab WRFILE:/tmp/kafka.service.keytab.
+```
+
+Now let's try to connect:
+
+```bash
+sudo kinit -kt /tmp/kafka.service.keytab kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com
+```
+
+Check with the KDC to ensure that the ticket has been issued:
+
+```bash
+sudo klist
+```
+
+You should see:
+
+```bash
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO
+
+Valid starting     Expires            Service principal
+06/14/23 19:41:12  06/15/23 19:41:12  krbtgt/AD.CONFLUENT.IO@AD.CONFLUENT.IO
+	renew until 06/14/23 19:41:12
+```
+
+### RHEL: Configuring krb5
+
+Most other aspects of the remaining setup will be identical for either Ubuntu or Redhat (RHEL 9). We're going to focus on RHEL from now on.
+
+Set up `krb5.conf`:
 
 ```bash
 sudo dnf install vim
