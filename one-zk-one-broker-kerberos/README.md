@@ -156,18 +156,20 @@ sudo kadmin.local -q "add_principal -randkey admin@AD.CONFLUENT.IO"
 
 ### Create Service User Principals
 
-Now let's create principals for Zookeeper and the Kafka broker.  For a Service User, the format is slightly different; here the query follows this format: `add_principal -randkey kafka|zookeeper/<<AWS KAFKA/ZK HOST PUBLIC DNS NAME>>@EXAMPLE.COM`
+Now let's create principals for Zookeeper and the Kafka broker.  For a Service User, the format is slightly different; here the query follows this format: `add_principal -randkey kafka|zookeeper/<<AWS KAFKA/ZK HOST PRIVATE DNS NAME>>@AD.CONFLUENT.IO`
 
-Let's start with Zookeeper (note that the address is the **Public DNS** for that instance):
+Let's start with Zookeeper (note that the address is the **Private DNS** [.internal] for that instance):
+
+![Private DNS Name](../img/private-dns.png)
 
 ```bash
-sudo kadmin.local -q "add_principal -randkey zookeeper/ec2-18-203-67-84.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+sudo kadmin.local -q "add_principal -randkey zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 ```
 
 And let's create a principal for our Kafka broker:
 
 ```bash
-sudo kadmin.local -q "add_principal -randkey kafka/ec2-3-252-36-160.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+sudo kadmin.local -q "add_principal -randkey kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 ```
 
 So, in summary, we now have 5 Principals: 3 are for our users (reader, writer and admin) and we have 2 service Principals for our 2 components (Zookeeper and Kafka).
@@ -178,20 +180,18 @@ For each of the users and service users, we now need to export out `keytab` file
 
 Note that the keytab file will be written to `/tmp`.
 
-Reminder that for the Service Principals, the EC2 host given is the Public EC2 DNS hostname for the target machine (either the zookeeper instance or the broker instance), for example:
-
-![Public DNS Name](../img/public-dns.png)
+Reminder that for the Service Principals, the EC2 host given is the **Private DNS** [.internal] hostname for the target machine (either the zookeeper instance or the broker instance).
 
 Starting with the Broker:
 
 ```bash
-sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ec2-3-252-36-160.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 ```
 
 Let's do the same for Zookeeper:
 
 ```bash
-sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ec2-18-203-67-84.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 ```
 
 Let's create the `reader`, `writer` and `admin` keytabs:
@@ -276,7 +276,7 @@ ansible-playbook -i hosts.yaml confluent.platform.all
 NOTE: issue with keytab being unreadable:
 
 ```bash
-sudo chmod 777 *.keytab
+sudo chmod 755 *.keytab
 ```
 
 Not sure whether this works though?
@@ -326,16 +326,3 @@ Consume from the topic:
 ```bash
 kafka-console-consumer --bootstrap-server localhost:9091 --topic test-topic --from-beginning
 ```
-
-NOTES - HOSTS diDn't come up; trying using internal DNS instead:
-
-sudo kadmin.local -q "add_principal -randkey kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
-sudo kadmin.local -q "add_principal -randkey zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
-
-sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
-sudo kadmin.local -q "xst -kt /tmp/zookeeper.service.keytab zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
-
-Authenticating as principal kafka/admin@AD.CONFLUENT.IO with password.
-WARNING: no policy specified for zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO; defaulting to no policy
-Principal "zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO" created.
-

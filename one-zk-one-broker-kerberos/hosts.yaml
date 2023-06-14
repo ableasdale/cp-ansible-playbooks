@@ -36,7 +36,7 @@ zookeeper:
       ansible_host: ec2-18-203-67-84.eu-west-1.compute.amazonaws.com
       zookeeper_id: 1
       zookeeper_kerberos_keytab_path: "/tmp/zookeeper.service.keytab"
-      zookeeper_kerberos_principal: "zookeeper/ec2-18-203-67-84.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+      zookeeper_kerberos_principal: "zookeeper/ip-10-0-11-190.eu-west-1.compute.internal@AD.CONFLUENT.IO"
 
 kafka_broker:
   hosts:
@@ -47,4 +47,4 @@ kafka_broker:
         broker.rack: eu-west-1a
       broker_id: 1
       kafka_broker_kerberos_keytab_path: "/tmp/kafka.service.keytab"
-      kafka_broker_kerberos_principal: "kafka/ec2-3-252-36-160.eu-west-1.compute.amazonaws.com@AD.CONFLUENT.IO"
+      kafka_broker_kerberos_principal: "kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO"
