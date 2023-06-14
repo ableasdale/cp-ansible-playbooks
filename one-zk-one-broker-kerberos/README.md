@@ -273,20 +273,85 @@ Run the playbook:
 ansible-playbook -i hosts.yaml confluent.platform.all
 ```
 
-NOTE: issue with keytab being unreadable:
+Note: when Keytab files are created, they have very limited permissions; you may encounter an issue where the keytab is unreadable by Ansible.  In which case, open out the permissions for the Keytabs and re-run the playbook:
 
 ```bash
 sudo chmod 755 *.keytab
 ```
 
-Not sure whether this works though?
-
 When the playbook has finished running, you'll see something like this:
 
 ```bash
-PLAY RECAP *********************************************************************
-ip-10-0-15-151.eu-west-1.compute.internal : ok=63   changed=27   unreachable=0    failed=0    skipped=51   rescued=0    ignored=0
-ip-10-0-7-82.eu-west-1.compute.internal : ok=55   changed=22   unreachable=0    failed=0    skipped=41   rescued=0    ignored=0
+PLAY RECAP ************************************************************************************************************************************
+ip-10-0-10-18.eu-west-1.compute.internal : ok=65   changed=0    unreachable=0    failed=0    skipped=49   rescued=0    ignored=0
+ip-10-0-11-190.eu-west-1.compute.internal : ok=57   changed=0    unreachable=0    failed=0    skipped=39   rescued=0    ignored=0
+```
+
+### Testing the Client application
+
+SSH to the Kafka Broker.
+
+```bash
+sudo apt install krb5-user
+```
+
+Run `kinit`:
+
+```bash
+sudo kinit -kt /etc/security/keytabs/kafka_broker.keytab kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO
+```
+
+```bash
+sudo kvno -k /etc/security/keytabs/kafka_broker.keytab kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO
+```
+
+Edit a jaas file:
+
+```bash
+vim client.jaas 
+```
+
+This file will contain:
+
+```jaas
+KafkaClient {
+        com.sun.security.auth.module.Krb5LoginModule required \
+        useKeyTab=true \
+        storeKey=true \
+        keyTab="/etc/security/keytabs/kafka_broker.keytab" \
+        principal="kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO";
+};
+```
+
+Then:
+
+```bash
+vim client.properties
+```
+
+This file will contain:
+
+```properties
+sasl.mechanism=GSSAPI
+security.protocol=SASL_PLAINTEXT
+sasl.kerberos.service.name=kafka
+sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
+useKeyTab=true \
+storeKey=true \
+keyTab="/etc/security/keytabs/kafka_broker.keytab" \
+principal="kafka/ip-10-0-10-18.eu-west-1.compute.internal@AD.CONFLUENT.IO";
+```
+
+Then:
+
+```bash
+export KAFKA_OPTS="-Djava.security.auth.login.config=~/client.jaas"
+```
+
+And produce:
+
+```bash
+sudo kafka-console-producer --bootstrap-server ip-10-0-10-18.eu-west-1.compute.internal:9091 --topic test1 --producer.config ~/client.properties
 ```
 
 ### Testing the output
