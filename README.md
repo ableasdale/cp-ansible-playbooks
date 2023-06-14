@@ -45,6 +45,10 @@ These playbooks have been tested with the latest version of cp-ansible (7.4.0) a
 
 ![Ubuntu 20.04](img/compatible-instance.png)
 
+Redhat 9 has been certified with Confluent Platform 7.4.x+ on AWS:
+
+![RHEL 9](img/compatible-instance-rhel.png)
+
 ## Useful reading
 
-- https://docs.confluent.io/platform/current/installation/system-requirements.html#operating-systems
+- <https://docs.confluent.io/platform/current/installation/system-requirements.html#operating-systems>
