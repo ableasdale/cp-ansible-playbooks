@@ -348,10 +348,16 @@ Then:
 export KAFKA_OPTS="-Djava.security.auth.login.config=~/client.jaas"
 ```
 
-And produce:
+And Produce:
 
 ```bash
 sudo kafka-console-producer --bootstrap-server ip-10-0-10-18.eu-west-1.compute.internal:9091 --topic test1 --producer.config ~/client.properties
+```
+
+Then Consume:
+
+```bash
+sudo kafka-console-consumer --bootstrap-server ip-10-0-10-18.eu-west-1.compute.internal:9091 --topic test1 --consumer.config ~/client.properties --from-beginning
 ```
 
 ### Testing the output
