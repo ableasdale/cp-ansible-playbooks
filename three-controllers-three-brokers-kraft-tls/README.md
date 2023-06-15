@@ -202,6 +202,8 @@ Let's create a keystore and truststore for a client application using the CA cre
 
 https://github.com/confluentinc/cp-ansible/blob/7.4.0-post/roles/variables/defaults/main.yml#L220
 
+In the following steps, we will use the cp-ansible provided CA and key (`snakeoil-ca-1.crt` and `snakeoil-ca-1.key`) and we will create a keystore and truststore for our client application to use to connect to the brokers:
+
 ```bash
 keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt -keyalg RSA
 
@@ -216,8 +218,43 @@ keytool -keystore kafka.client.keystore.jks -alias CARoot -import -file ~/.ansib
 keytool -keystore kafka.client.keystore.jks -import -file client-cert-signed -alias my-local-pc -storepass confluent -keypass confluent -noprompt
 ```
 
-TODO - log in to MDS:
+With those files created, we now need to create the producer configuration for TLS - in this case, the file is named `client-tls.properties`:
 
+```bash
+security.protocol=SSL
+ssl.truststore.location=/home/ubuntu/client/kafka.client.truststore.jks
+ssl.truststore.password=confluent
+ssl.keystore.location=/home/ubuntu/client/kafka.client.keystore.jks
+ssl.keystore.password=confluent
+ssl.key.password=confluent
 ```
+
+### Produce using TLS
+
+Let's produce some data:
+
+```bash
+./kafka-console-producer.sh --bootstrap-server ip-10-0-14-129.eu-west-1.compute.internal:9091 --topic kafka-topic --producer.config ~/client/client-tls.properties
+```
+
+### Consume using TLS
+
+And let's now confirm that we can read it:
+
+```bash
+./kafka-console-consumer.sh --bootstrap-server ip-10-0-14-129.eu-west-1.compute.internal:9091 --topic kafka-topic --consumer.config ~/client/client-tls.properties --from-beginning
+```
+
+For the `console` tools (if they're unavailable on your host):
+
+```bash
+wget https://downloads.apache.org/kafka/3.5.0/kafka_2.12-3.5.0.tgz
+tar -xvzf kafka_2.12-3.5.0.tgz
+cd kafka_2.12-3.5.0/bin
+```
+
+TODO - log in to MDS (when we have a playbook for it):
+
+```bash
 confluent login --url https://localhost:8091  --ca-cert-path ./scripts/security/snakeoil-ca-1.crt
 ```
