@@ -38,7 +38,6 @@ For Ubuntu, your krb5 config file should look like this:
         kdc_timesync = 1
         ccache_type = 4
         proxiable = true
-
         dns_lookup_realm = false
         dns_lookup_kdc = false
         ticket_lifetime = 24h
@@ -53,8 +52,8 @@ For Ubuntu, your krb5 config file should look like this:
 
 [realms]
         AD.CONFLUENT.IO = {
-                kdc = ec2-3-252-252-150.eu-west-1.compute.amazonaws.com:88
-                admin_server = ec2-3-252-252-150.eu-west-1.compute.amazonaws.com:749
+                kdc = ec2-54-155-209-51.eu-west-1.compute.amazonaws.com:88
+                admin_server = ec2-54-155-209-51.eu-west-1.compute.amazonaws.com:749
                 default_domain = ad.confluent.io
         }
 
@@ -136,7 +135,7 @@ Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@AD.CO
 
 Valid starting     Expires            Service principal
 06/14/23 19:41:12  06/15/23 19:41:12  krbtgt/AD.CONFLUENT.IO@AD.CONFLUENT.IO
-	renew until 06/14/23 19:41:12
+    renew until 06/14/23 19:41:12
 ```
 
 ### RHEL: Configuring krb5
@@ -413,7 +412,7 @@ Default principal: kafka/ec2-52-211-77-186.eu-west-1.compute.amazonaws.com@EXAMP
 
 Valid starting       Expires              Service principal
 06/14/2023 15:29:13  06/15/2023 15:29:13  krbtgt/EXAMPLE.COM@EXAMPLE.COM
-	renew until 06/14/2023 15:29:13
+    renew until 06/14/2023 15:29:13
 ```
 
 Great! We're ready to start working on the Playbook!
@@ -427,7 +426,7 @@ To get the playbook running, you'll need two EC2 instances:
 
 ### Modify the Playbook
 
-Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`): 
+Specify the PEM file that you used when the instance was created in the playbook (`hosts.yaml`):
 
 ```yaml
     ansible_ssh_private_key_file: <yourPEMfilename>.pem
