@@ -1,0 +1,36 @@
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: ableasdale-ansible-eu-west-1.pem
+    ansible_ssh_common_args: -o StrictHostKeyChecking=no
+    validate_hosts: false
+    # Uses Ubuntu 20.04 LTS (focal)
+    confluent_common_repository_debian_release_version: focal
+    #Enable JMX Exporter
+    jmxexporter_enabled: true    
+    env: aws
+
+kafka_controller:
+  hosts:
+    ip-10-0-12-71.eu-west-1.compute.internal:
+      ansible_host: ec2-34-253-232-213.eu-west-1.compute.amazonaws.com
+    ip-10-0-4-219.eu-west-1.compute.internal:
+      ansible_host: ec2-3-249-241-7.eu-west-1.compute.amazonaws.com
+    ip-10-0-2-251.eu-west-1.compute.internal:
+      ansible_host: ec2-3-249-121-209.eu-west-1.compute.amazonaws.com
+
+kafka_broker:
+  hosts:
+    ip-10-0-14-129.eu-west-1.compute.internal:
+      ansible_host: ec2-34-247-84-134.eu-west-1.compute.amazonaws.com
+    ip-10-0-0-149.eu-west-1.compute.internal:
+      ansible_host: ec2-63-34-163-58.eu-west-1.compute.amazonaws.com
+    ip-10-0-13-195.eu-west-1.compute.internal:
+      ansible_host: ec2-54-74-103-75.eu-west-1.compute.amazonaws.com
+
+control_center:
+  hosts:
+    ip-10-0-3-222.eu-west-1.compute.internal:
+      ansible_host: ec2-3-249-62-113.eu-west-1.compute.amazonaws.com
