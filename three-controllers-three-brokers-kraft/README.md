@@ -1,4 +1,65 @@
+# Three KRaft nodes; three brokers; Confluent Control Center (C3)
 
+## Prerequisites
+
+To get the playbook running, you'll need three EC2 instances:
+
+- C3 (`t2.large`)
+- Broker (`t2.large`)
+- KRaft Controllers (`t2.medium`)
+  
+## Modify the Playbook
+
+Specify the PEM file that you used (to connect to the instance) when the instance was created in the playbook (`hosts.yaml`):
+
+```yaml
+    ansible_ssh_private_key_file: <yourPEMfilename>.pem
+```
+
+Configure the three KRaft Quorum Controllers (`kafka_controller`) - use the internal host DNS name for the first line and the Public DNS host name for the second line:
+
+```yaml
+kafka_controller:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+Configure the three Brokers (use the internal host DNS name for the first line and the Public DNS host name for the second line):
+
+```yaml
+kafka_broker:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+Configure the C3 host (use the internal host DNS name for the first line and the Public DNS host name for the second line):
+
+```yaml
+control_center:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+```
+
+### Run Ansible
+
+Run the playbook:
+
+```bash
+ansible-playbook -i hosts.yaml confluent.platform.all
+```
+
+When the playbook has finished running, you'll see something like this:
 
 ```bash
 PLAY RECAP ************************************************************************************************************************************
