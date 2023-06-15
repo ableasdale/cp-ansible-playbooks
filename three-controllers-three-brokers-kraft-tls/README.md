@@ -198,7 +198,9 @@ For this section, you will need a Java runtime to be installed on the host insta
 sudo apt install openjdk-17-jre-headless
 ```
 
-Let's create a keystore and truststore for a client application
+Let's create a keystore and truststore for a client application using the CA created by Ansible - note that cp-ansible creates generates a standard password if you don't overridde it specifically, see:
+
+https://github.com/confluentinc/cp-ansible/blob/7.4.0-post/roles/variables/defaults/main.yml#L220
 
 ```bash
 keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt -keyalg RSA
