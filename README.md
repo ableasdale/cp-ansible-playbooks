@@ -11,7 +11,8 @@ There are playbooks (with instructions) for the following configurations:
 - [All CP Components; no security configured](full-cluster-no-security/README.md)
 - [One Zookeeper; one Broker; Confluent Control Center; TLS/SSL](one-zk-one-broker-c3-tls/README.md)
 - [One Zookeeper; one Broker; Kerberos](one-zk-one-broker-kerberos/README.md)
-- [KRaft Mode: three Controllers; three Brokers](three-controllers-three-brokers-kraft/README.md)
+- [KRaft Mode: three Controllers; three Brokers; C3](three-controllers-three-brokers-kraft/README.md)
+- [KRaft Mode: three Controllers; three Brokers; C3; Schema Registry; TLS/SSL](three-controllers-three-brokers-kraft-tls/README.md)
 
 ## Installation
 

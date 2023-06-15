@@ -1,0 +1,42 @@
+all:
+  vars:
+    ssl_enabled: true
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: <yourPEMfilename>.pem
+    ansible_ssh_common_args: -o StrictHostKeyChecking=no
+    validate_hosts: false
+    # Uses Ubuntu 20.04 LTS (focal)
+    confluent_common_repository_debian_release_version: focal
+    #Enable JMX Exporter
+    jmxexporter_enabled: true    
+    env: aws
+
+kafka_controller:
+  hosts:
+    ip-xxx-xxx-xxx-xx1.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx1.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xx2.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx2.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xx3.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx3.aws-region.compute.amazonaws.com
+
+kafka_broker:
+  hosts:
+    ip-xxx-xxx-xxx-xx1.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx1.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xx2.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx2.aws-region.compute.amazonaws.com
+    ip-xxx-xxx-xxx-xx3.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xx3.aws-region.compute.amazonaws.com
+
+schema_registry:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
+
+control_center:
+  hosts:
+    ip-xxx-xxx-xxx-xxx.aws-region.compute.internal:
+      ansible_host: ec2-xxx-xxx-xxx-xxx.aws-region.compute.amazonaws.com
