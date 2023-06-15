@@ -17,6 +17,12 @@ To get the playbook running, you'll need eight EC2 instances:
 - Broker (`t2.large`)
 - KRaft Controller (`t2.medium`)
 - Schema Registry (`t2.medium`)
+
+## Security
+
+You need to provide access to port `9093` within the subnet:
+
+![Quorum Node Port](../img/security-group-kraft.png)
   
 ## Modify the Playbook
 
@@ -252,6 +258,22 @@ For the `console` tools (if they're unavailable on your host):
 wget https://downloads.apache.org/kafka/3.5.0/kafka_2.12-3.5.0.tgz
 tar -xvzf kafka_2.12-3.5.0.tgz
 cd kafka_2.12-3.5.0/bin
+```
+
+### Quorum tools
+
+Note controller configuration is in the `/etc/kafka/kraft` directory.  See `controller.properties` file.
+
+Run against one of the KRaft Controllers:
+
+```bash
+./kafka-metadata-quorum.sh --bootstrap-server ip-10-0-12-71.eu-west-1.compute.internal:9093 describe --status
+```
+
+Or when run directly a controllder node directly:
+
+```bash
+/usr/bin/kafka-metadata-quorum --bootstrap-server localhost:9093 describe --status
 ```
 
 TODO - log in to MDS (when we have a playbook for it):
