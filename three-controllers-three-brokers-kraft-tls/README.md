@@ -264,17 +264,131 @@ cd kafka_2.12-3.5.0/bin
 
 Note controller configuration is in the `/etc/kafka/kraft` directory.  See `controller.properties` file.
 
-Run against one of the KRaft Controllers:
+Run against one of the KRaft Controllers to get the quorum status:
 
 ```bash
-./kafka-metadata-quorum.sh --bootstrap-server ip-10-0-12-71.eu-west-1.compute.internal:9093 describe --status
+./kafka-metadata-quorum.sh --bootstrap-server ip-10-0-12-71.eu-west-1.compute.internal:9093 --command-config ~/client/client-tls.properties  describe --status
 ```
 
-Or when run directly a controllder node directly:
+This will give you some basic cluster status:
 
 ```bash
-/usr/bin/kafka-metadata-quorum --bootstrap-server localhost:9093 describe --status
+ClusterId:              UT_yaEWiSumNVxmp9UVVIw
+LeaderId:               9993
+LeaderEpoch:            89
+HighWatermark:          47683
+MaxFollowerLag:         0
+MaxFollowerLagTimeMs:   149
+CurrentVoters:          [9991,9992,9993]
+CurrentObservers:       [1,2,3]
 ```
+
+You can also get the replication status for the cluster:
+
+```bash
+./kafka-metadata-quorum.sh --bootstrap-server ip-10-0-12-71.eu-west-1.compute.internal:9093 --command-config ~/client/client-tls.properties  describe --replication
+```
+
+You'll see something like:
+
+```bash
+NodeId	LogEndOffset	Lag	LastFetchTimestamp	LastCaughtUpTimestamp	Status
+9993  	48010       	0  	1686843374605     	1686843374605        	Leader
+9991  	48010       	0  	1686843374269     	1686843374269        	Follower
+9992  	48010       	0  	1686843374266     	1686843374266        	Follower
+1     	48010       	0  	1686843374265     	1686843374265        	Observer
+2     	48010       	0  	1686843374265     	1686843374265        	Observer
+3     	48010       	0  	1686843374265     	1686843374265        	Observer
+```
+
+Or when run directly a controller node directly:
+
+```bash
+/usr/bin/kafka-metadata-quorum --bootstrap-server localhost:9093 --command-config <tls.properties.file> describe --status
+```
+
+
+
+### Notes below
+
+TODO - this appears to hang and never connects so these are just notes for now
+
+Create the keystore and truststore to copy to the controller:
+
+```bash
+keytool -keystore kafka.controller.truststore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt -keyalg RSA
+
+keytool -genkey -keystore kafka.controller.keystore.jks -validity 365 -storepass confluent -keypass confluent -dname "CN=ip-10-0-12-71.eu-west-1.compute.internal" -storetype pkcs12 -keyalg RSA
+
+keytool -keystore kafka.controller.keystore.jks -certreq -file client-cert-sign-request -storepass confluent -keypass confluent
+
+openssl x509 -req -CA ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -CAkey ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.key -in client-cert-sign-request -out client-cert-signed -days 365 -CAcreateserial -passin pass:capassword123
+
+keytool -keystore kafka.controller.keystore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt
+
+keytool -keystore kafka.controller.keystore.jks -import -file client-cert-signed -storepass confluent -keypass confluent -noprompt
+```
+
+Copy the .jks files to the controller:
+
+```bash
+ scp -i ../ableasdale-ansible-eu-west-1.pem *.jks ubuntu@ip-10-0-12-71.eu-west-1.compute.internal:/home/ubuntu
+```
+
+Connect to the controller, create the `properties` file:
+
+```properties
+security.protocol=SSL
+listener.security.protocol.map=CONTROLLER:SSL,PLAINTEXT:PLAINTEXT
+ssl.truststore.location=/home/ubuntu/kafka.controller.truststore.jks
+ssl.truststore.password=confluent
+ssl.keystore.location=/home/ubuntu/kafka.controller.keystore.jks
+ssl.keystore.password=confluent
+ssl.key.password=confluent
+ssl.truststore.type=JKS
+```
+
+Then attempt to run this on the controller:
+
+```bash
+sudo kafka-metadata-shell --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093 --config /home/ubuntu/controller-tls.properties
+```
+
+
+## Kafka Metadata Shell
+
+In `var/ssl/private` we have the keystore and truststore for the controller.
+
+The password for the truststore is detailed here https://github.com/confluentinc/cp-ansible/blob/7.4.0-post/roles/variables/defaults/main.yml#L474-L476
+
+sudo kafka-metadata-shell --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093 --config ~/controller-tls.properties
+
+```properties
+security.protocol=SSL
+listener.security.protocol.map=CONTROLLER:SSL,PLAINTEXT:PLAINTEXT
+ssl.truststore.location=/var/ssl/private/kafka_controller.truststore.jks
+ssl.truststore.password=confluenttruststorepass
+ssl.keystore.location=/var/ssl/private/kafka_controller.keystore.jks
+ssl.keystore.password=confluentkeystorestorepass
+ssl.key.password=kafka_controller_keystore_storepass
+ssl.truststore.type=JKS
+```
+
+This hangs:
+
+ sudo kafka-metadata-shell --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093 --config /home/ubuntu/controller-tls.properties
+
+
+
+TODO - notes below:
+
+/opt/confluent/bin/kafka-metadata-shell.sh --cluster-id ps7S09IeTsSrPVq4V4kWPw --controllers 9990@kcontroller-0-internal.pkcc-rrv8gk.svc.cluster.local:9073
+
+./kafka-metadata-shell.sh --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093
+
+kafka-metadata-shell --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093 --config file.properties
+
+kafka-metadata-shell --cluster-id UT_yaEWiSumNVxmp9UVVIw --controllers 9993@ip-10-0-12-71.eu-west-1.compute.internal:9093
 
 TODO - log in to MDS (when we have a playbook for it):
 
