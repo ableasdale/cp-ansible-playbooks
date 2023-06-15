@@ -189,3 +189,33 @@ If you don't want to set the `CURL_CA_BUNDLE` variable, you can pass the path in
 ```bash
 curl --cacert ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -X GET https://ip-10-0-7-139.eu-west-1.compute.internal:8081/schemas/types | jq
 ```
+
+### TLS Producer / Consumer
+
+For this section, you will need a Java runtime to be installed on the host instance:
+
+```bash
+sudo apt install openjdk-17-jre-headless
+```
+
+Let's create a keystore and truststore for a client application
+
+```bash
+keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt -keyalg RSA
+
+keytool -genkey -keystore kafka.client.keystore.jks -validity 365 -storepass confluent -keypass confluent -dname "CN=ip-10-0-3-22.eu-west-1.compute.internal" -alias my-local-pc -storetype pkcs12 -keyalg RSA
+
+keytool -keystore kafka.client.keystore.jks -certreq -file client-cert-sign-request -alias my-local-pc -storepass confluent -keypass confluent
+
+openssl x509 -req -CA ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -CAkey ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.key -in client-cert-sign-request -out client-cert-signed -days 365 -CAcreateserial -passin pass:capassword123
+
+keytool -keystore kafka.client.keystore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt
+
+keytool -keystore kafka.client.keystore.jks -import -file client-cert-signed -alias my-local-pc -storepass confluent -keypass confluent -noprompt
+```
+
+TODO - log in to MDS:
+
+```
+confluent login --url https://localhost:8091  --ca-cert-path ./scripts/security/snakeoil-ca-1.crt
+```
