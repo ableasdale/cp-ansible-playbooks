@@ -198,24 +198,25 @@ For this section, you will need a Java runtime to be installed on the host insta
 sudo apt install openjdk-17-jre-headless
 ```
 
-Let's create a keystore and truststore for a client application using the CA created by Ansible - note that cp-ansible creates generates a standard password if you don't overridde it specifically, see:
+Let's create a keystore and truststore for a client application using the CA created by Ansible - note that `cp-ansible` creates generates a standard password if you don't overridde it specifically, [https://github.com/confluentinc/cp-ansible/blob/7.4.0-post/roles/variables/defaults/main.yml#L220](see this line from main.yml in the source for more details).
 
-https://github.com/confluentinc/cp-ansible/blob/7.4.0-post/roles/variables/defaults/main.yml#L220
+In the following steps, we will use the cp-ansible provided CA and key (`snakeoil-ca-1.crt` and `snakeoil-ca-1.key`) and we will create a keystore and truststore for our client application to use to connect to the brokers.  A few points to note:
 
-In the following steps, we will use the cp-ansible provided CA and key (`snakeoil-ca-1.crt` and `snakeoil-ca-1.key`) and we will create a keystore and truststore for our client application to use to connect to the brokers:
+- Note that when we create the `kafka.client.keystore.jks`, the `-dname` should correspond with the hostname where the producer will be running (e.g. `ip-xxx-xxx-xxx-xxx.geo-region.compute.internal`).
+- In each case for the `keystore` and the `truststore`, we're using `confluent` as our password for the stores.
 
 ```bash
 keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt -keyalg RSA
 
-keytool -genkey -keystore kafka.client.keystore.jks -validity 365 -storepass confluent -keypass confluent -dname "CN=ip-10-0-3-22.eu-west-1.compute.internal" -alias my-local-pc -storetype pkcs12 -keyalg RSA
+keytool -genkey -keystore kafka.client.keystore.jks -validity 365 -storepass confluent -keypass confluent -dname "CN=ip-10-0-3-22.eu-west-1.compute.internal" -storetype pkcs12 -keyalg RSA
 
-keytool -keystore kafka.client.keystore.jks -certreq -file client-cert-sign-request -alias my-local-pc -storepass confluent -keypass confluent
+keytool -keystore kafka.client.keystore.jks -certreq -file client-cert-sign-request -storepass confluent -keypass confluent
 
 openssl x509 -req -CA ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -CAkey ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.key -in client-cert-sign-request -out client-cert-signed -days 365 -CAcreateserial -passin pass:capassword123
 
 keytool -keystore kafka.client.keystore.jks -alias CARoot -import -file ~/.ansible/collections/ansible_collections/confluent/platform/playbooks/generated_ssl_files/snakeoil-ca-1.crt -storepass confluent -keypass confluent -noprompt
 
-keytool -keystore kafka.client.keystore.jks -import -file client-cert-signed -alias my-local-pc -storepass confluent -keypass confluent -noprompt
+keytool -keystore kafka.client.keystore.jks -import -file client-cert-signed -storepass confluent -keypass confluent -noprompt
 ```
 
 With those files created, we now need to create the producer configuration for TLS - in this case, the file is named `client-tls.properties`:
