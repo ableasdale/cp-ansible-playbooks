@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-To get the playbook running, you'll need three EC2 instances:
+To get the playbook running, you'll need seven EC2 instances:
 
 - C3 (`t2.large`)
 - Broker (`t2.large`)
-- KRaft Controllers (`t2.medium`)
+- KRaft Controller (`t2.medium`)
   
 ## Modify the Playbook
 
